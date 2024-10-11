@@ -3,7 +3,7 @@ https://github.com/golang-samples/gopher-vector design by Takuya Ueda -->
 ![Mascot](https://cep21.github.io/circuit/imgs/hystrix-gopher_100px.png)
 # Circuit
 [![Build Status](https://github.com/cep21/circuit/workflows/Test/badge.svg?branch=master&event=push)](https://github.com/cep21/circuit/actions)
-[![GoDoc](https://godoc.org/github.com/cep21/circuit?status.svg)](https://pkg.go.dev/github.com/cep21/circuit/v3)
+[![GoDoc](https://godoc.org/github.com/cep21/circuit?status.svg)](https://pkg.go.dev/github.com/cep21/circuit/v4)
 [![Coverage Status](https://coveralls.io/repos/github/cep21/circuit/badge.svg)](https://coveralls.io/github/cep21/circuit)
 
 Circuit is an efficient and feature complete [Hystrix](https://github.com/Netflix/Hystrix) like Go implementation of
@@ -45,6 +45,10 @@ worth looking at.  They tend to be more up to date than the README doc.
 * Generatable interface wrapping support with https://github.com/twitchtv/circuitgen
 * Support for [Additive increase/multiplicative decrease](https://github.com/cep21/aimdcloser)
 * Prometheus [metrics collector](https://github.com/jiacai2050/prometrics).
+
+# Upgrading
+
+See [UPGRADE_GUIDE.md](./UPGRADE_GUIDE.md) for upgrade instructions if you're upgrading from v3 to v4.
 
 # Usage
 
@@ -313,27 +317,6 @@ fmt.Println("The timeout of v1 is", h.GetCircuit("v1").Config().Execution.Timeou
 // Output: The timeout of v1 is 1s
 ```
 
-## [StatsD configuration factory](https://godoc.org/github.com/cep21/circuit/metrics/statsdmetrics#example-CommandFactory-CommandProperties)
-
-A configuration factory for statsd is provided inside ./metrics/statsdmetrics
-
-This example shows how to inject a statsd metric collector into a circuit.
-
-```go
-// This factory allows us to report statsd metrics from the circuit
-f := statsdmetrics.CommandFactory{
-  SubStatter: &statsd.NoopClient{},
-}
-
-// Wire the statsd factory into the circuit manager
-h := circuit.Manager{
-  DefaultCircuitProperties: []circuit.CommandPropertiesConstructor{f.CommandProperties},
-}
-// This created circuit will now use statsd
-h.MustCreateCircuit("using-statsd")
-// Output:
-```
-
 ## [Service health tracking](https://godoc.org/github.com/cep21/circuit/metrics/responsetimeslo#example-Factory)
 
 Most services have the concept of an SLA, or service level agreement.  Unfortunantly,
@@ -397,10 +380,12 @@ fmt.Println("Result of 10/0 is", err)
 // Output: Result of 10/0 is someone tried to divide by zero
 ```
 
-# [Benchmarking](https://github.com/cep21/circuit/blob/master/v3/benchmarking/benchmark_hystrix_test.go)
+# Benchmarking
 
 This implementation is more efficient than go-hystrix in every configuration.  It has comparable efficiency
-to other implementations, in most faster when running with high concurrency. Run benchmarks with `make bench`.
+to other implementations, faster for most when running with high concurrency.
+
+The benchmarking code is available [here](https://github.com/cep21/circuit-benchmarks). Run benchmarks with `make bench`.
 
 I benchmark the following alternative circuit implementations.  I try to be fair and if
 there is a better way to benchmark one of these circuits, please let me know!
@@ -466,20 +451,19 @@ BenchmarkCiruits/iand_circuit/Default/passing/75-8       	 5000000	       349 ns
 
 # [Development](https://github.com/cep21/circuit/blob/master/Makefile)
 
-Make sure your tests pass with `make test` and your lints pass with `make lint`.
+Make sure your tests pass with `go test` and your lints pass with `golangci-lint run`.
 
 # [Example](https://github.com/cep21/circuit/blob/master/example/main.go)
 
 You can run an example set of circuits inside the /example directory
 
 ```bash
-make run
+go run example/main.go
 ```
 
 The output looks something like this:
 
 ```bash
-< make run
 go run example/main.go
 2017/12/19 15:24:42 Serving on socket :8123
 2017/12/19 15:24:42 To view the stream, execute:
